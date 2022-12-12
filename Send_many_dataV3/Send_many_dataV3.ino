@@ -29,7 +29,7 @@ String appKey = "4D740505194EA0BEE9F6EF3A786F5A64";
 bool connected;
 int err_count;
 int con;
-int data[7];
+short data[7]; // short type because the higher value is 12001 for the weigh * 100
 
 int PinReadBat = A2; //Lecture de la batterie
 float TensionBat = 0; //Tension de la batterie
@@ -88,23 +88,23 @@ void setup() {
 
 void loop() {
   
-//  ---------------------------------- (batterie)
-  data[0] = (int) round(batterie()*100);
-//  ----------------------------------- (poid en kg, précision de 0,2mv/V, résolution de ...)
-  data[1] = (int) round(poid()*100);
-//   ---------------------------------- (temp DS18B20 *2 en °C, précision de 0,5°C, résolution de ...)
+//  ---------------------------------- (batterie, précision de 1%, résolution de 1% -> 7 bits)
+  data[0] = (short) round(batterie()*100);
+//  ----------------------------------- (poid en kg, précision de 0,2mv/V, résolution de 0.01kg , 120.01 kg -> 14 bits)
+  data[1] = (short) round(poid()*100);
+//   ---------------------------------- (temp DS18B20 *2 en °C, précision de 0,5°C, résolution de 0.1°C, -10.1° à 85.1°C -> 10 bits + 1 bit)
   tempDS18B20();
   for(int i = 0; i < nbrCapteurTempDS18B20; i++){
-    data[1+i] = (int) round(tabTempDS18B20[i]*100);
+    data[1+i] = (short) round(tabTempDS18B20[i]*100);
   }  
-//   ---------------------------------- (temp 2 en °C, précision de 0,5°C, résolution de ...)
-  data[4] = (int) round(tempDHT22(1)*100);
+//   ---------------------------------- (temp DHT22 en °C, précision de 0,5°C, résolution de 0.1°C, -10.1° à 85.1°C -> 10 bits + 1 bit)
+  data[4] = (short) round(tempDHT22(1)*100);
+//   ---------------------------------- (Humidite DHT22 en %, précision de 2%, résolution de 0,1% -> 10 bits)
+  data[5] = (short) round(humDHT22(1)*100);
+//   ---------------------------------- (temp DHT22 en °C, précision de 0,5°C, résolution de 0.1°C, -10.1° à 85.1°C -> 10 bits + 1 bit)
+  data[6] = (short) round(tempDHT22(2)*100);
 //   ---------------------------------- (Humidite DHT22 en %, précision de 2%, résolution de ...)
-  data[5] = (int) round(humDHT22(1)*100);
-//   ---------------------------------- (temp DHT22 en °C, précision de 0,5°C, résolution de ...)
-  data[6] = (int) round(tempDHT22(2)*100);
-//   ---------------------------------- (Humidite DHT22 en %, précision de 2%, résolution de ...
-  data[7] = (int) round(humDHT22(2)*100);
+  data[7] = (short) round(humDHT22(2)*100);
 //   ---------------------------------- (Courrant ...)
   //data.concat(courrantSEN0291());
   //data.concat(";");
