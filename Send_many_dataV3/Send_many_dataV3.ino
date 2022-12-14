@@ -76,18 +76,18 @@ void setup() {
     //Initialisation du capteur de poid
     scale.begin(LOADCELL_DOUT_PIN, LOADCELL_SCK_PIN);
 
+  /* Commented to test the code without the sensor
     //Initialiser SEN0291
     while(ina219.begin() != true) { 
         Serial.println("INA219 begin faild");
         delay(2000);
-    }
+    }*/
 
     delay(1000);      // apparently the murata dislike if this tempo is removed...
 
 }
 
 void loop() {
-  
 //  ---------------------------------- (batterie, précision de 1%, résolution de 1% -> 7 bits)
   data[0] = (short) round(batterie()*100);
 //  ----------------------------------- (poid en kg, précision de 0,2mv/V, résolution de 0.01kg , 120.01 kg -> 14 bits)
@@ -108,11 +108,11 @@ void loop() {
 //   ---------------------------------- (Courrant ...)
   //data.concat(courrantSEN0291());
   //data.concat(";");
+
 //------------------------------------- vérification de connection à LPWAN
    sendData();
    //LowPower.deepSleep(30000);
-   delay(20000);
-   
+   delay(10000); // 10s pour les tests
 }
 
 float batterie (void){
@@ -123,10 +123,12 @@ float batterie (void){
 }
 
 float poid (void){
+  scale.power_up(); // wake up the sensor
   float reading = (scale.read()- TARE)/28413;
   if(reading < 0) reading = 0;
   Serial.print("Poid reading : ");
   Serial.println(reading);
+  scale.power_down(); // power down to save power
   return reading;
 }
 
@@ -181,7 +183,6 @@ float courrantSEN0291(void){
   Serial.print("Couurent SEN0291 : ");
   Serial.println(courrant);
 }
-
 
 int sendData(void){
   if ( !connected ) {
