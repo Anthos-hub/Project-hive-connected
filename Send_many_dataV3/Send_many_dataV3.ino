@@ -17,7 +17,7 @@ const int LOADCELL_DOUT_PIN = 1;
 const int LOADCELL_SCK_PIN = 2;
 const float TARE = 133024;
 
-HX711 scale; // Pour la mesure du poid
+HX711 scale; // Pour la mesure du poids
 
 //Pour la communication lora 
 LoRaModem modem;
@@ -34,7 +34,7 @@ short data[7]; // short type because the higher value is 12001 for the weigh * 1
 int PinReadBat = A2; //Lecture de la batterie
 float TensionBat = 0; //Tension de la batterie
 
-uint8_t address_DS18B20[8]; //capteur de temperature 
+uint8_t address_DS18B20[8]; //capteur de temperature DS18B20
 DS18B20 ds(3);
 int nbrCapteurTempDS18B20 = 2;
 float tabTempDS18B20[2];
@@ -54,10 +54,10 @@ DFRobot_INA219_IIC     ina219(&Wire, INA219_I2C_ADDRESS4);
 void setup() {
 
     //Allumage de la LED au demarage
-    pinMode(A6,OUTPUT); //LED start
-    digitalWrite(A6,HIGH); //allumer led au demarage
+    pinMode(LED_BUILTIN,OUTPUT); //LED start
+    digitalWrite(LED_BUILTIN,HIGH); //allumer led au demarage pendant 3 secondes
     delay(3000);
-    digitalWrite(A6,LOW);
+    digitalWrite(LED_BUILTIN,LOW);
   
     //Initialisation de l'UART
     Serial.begin(115200);
@@ -73,7 +73,7 @@ void setup() {
     //Initialisaion Lora
     modem.begin(EU868);
 
-    //Initialisation du capteur de poid
+    //Initialisation du capteur de poids
     scale.begin(LOADCELL_DOUT_PIN, LOADCELL_SCK_PIN);
 
   /* Commented to test the code without the sensor
@@ -92,8 +92,8 @@ void loop() {
   
 //  ---------------------------------- (batterie, précision de 1%, résolution de 1% -> 7 bits)
   data[0] = (short) round(batterie()*100);
-//  ----------------------------------- (poid en kg, précision de 0,2mv/V, résolution de 0.01kg , 120.01 kg -> 14 bits)
-  data[1] = (short) round(poid()*100);
+//  ----------------------------------- (poids en kg, précision de 0,2mv/V, résolution de 0.01kg , 120.01 kg -> 14 bits)
+  data[1] = (short) round(poids()*100);
 //   ---------------------------------- (temp DS18B20 *2 en °C, précision de 0,5°C, résolution de 0.1°C, -10.1° à 85.1°C -> 10 bits + 1 bit)
   tempDS18B20();
   for(int i = 0; i < nbrCapteurTempDS18B20; i++){
@@ -126,11 +126,11 @@ float batterie (void){
   return TensionBat;
 }
 
-float poid (void){
+float poids (void){
   scale.power_up(); // wake up the sensor
   float reading = (scale.read()- TARE)/28413;
   if(reading < 0) reading = 0;
-  Serial.print("Poid reading : ");
+  Serial.print("poids reading : ");
   Serial.println(reading);
   scale.power_down(); // power down to save power
   return reading;
