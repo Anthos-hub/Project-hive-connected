@@ -88,6 +88,8 @@ void setup() {
 }
 
 void loop() {
+  
+  
 //  ---------------------------------- (batterie, précision de 1%, résolution de 1% -> 7 bits)
   data[0] = (short) round(batterie()*100);
 //  ----------------------------------- (poid en kg, précision de 0,2mv/V, résolution de 0.01kg , 120.01 kg -> 14 bits)
@@ -108,11 +110,13 @@ void loop() {
 //   ---------------------------------- (Courrant ...)
   //data.concat(courrantSEN0291());
   //data.concat(";");
-
 //------------------------------------- vérification de connection à LPWAN
    sendData();
-   //LowPower.deepSleep(30000);
-   delay(10000); // 10s pour les tests
+   
+   // go in low power mode
+   LowPower.deepSleep(10000); // 10s pour les tests  || 1000 * 60 * 60 * 24 = 86400000 pour 1 mesure / jour
+   delay(100); // small delay after the deepsleep mode to give time to the ESP32 to wake up completely
+   //delay(10000); // 10s pour les tests
 }
 
 float batterie (void){
