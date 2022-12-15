@@ -6,10 +6,9 @@
 #include "DFRobot_INA219.h"
 #include "ArduinoLowPower.h"
 
-//#define DHTPIN A0     // what pin we're connected to
+//#define DHTTYPE     // Here we use DHT22
 #define DHTTYPE DHT22   // DHT 22  (AM2302)
 DHT dht1(A0, DHTTYPE); //// Initialize DHT sensor for normal 16mhz Arduino
-
 DHT dht2(A1, DHTTYPE); //// Initialize DHT sensor for normal 16mhz Arduino
 
 // HX711 circuit wiring
@@ -17,7 +16,8 @@ const int LOADCELL_DOUT_PIN = 1;
 const int LOADCELL_SCK_PIN = 2;
 const float TARE = 133024;
 
-HX711 scale; // Pour la mesure du poids
+//definition for the weight
+HX711 scale;
 
 //Pour la communication lora 
 LoRaModem modem;
@@ -31,10 +31,13 @@ int err_count;
 int con;
 short data[7]; // short type because the higher value is 12001 for the weigh * 100
 
-int PinReadBat = A2; //Lecture de la batterie
-float TensionBat = 0; //Tension de la batterie
 
-uint8_t address_DS18B20[8]; //capteur de temperature DS18B20
+//Initialisation of the battery
+int PinReadBat = A2; //Lecture de la battery
+float TensionBat = 0; //Tension de la battery
+
+// Sensor of the temperature DS18B20
+uint8_t address_DS18B20[8];
 DS18B20 ds(3);
 int nbrCapteurTempDS18B20 = 2;
 float tabTempDS18B20[2];
@@ -73,7 +76,7 @@ void setup() {
     //Initialisaion Lora
     modem.begin(EU868);
 
-    //Initialisation du capteur de poids
+    //Initialisation of the sensor of the weight
     scale.begin(LOADCELL_DOUT_PIN, LOADCELL_SCK_PIN);
 
   /* Commented to test the code without the sensor
@@ -88,24 +91,23 @@ void setup() {
 }
 
 void loop() {
-  
-  
-//  ---------------------------------- (batterie, précision de 1%, résolution de 1% -> 7 bits)
-  data[0] = (short) round(batterie()*100);
-//  ----------------------------------- (poids en kg, précision de 0,2mv/V, résolution de 0.01kg , 120.01 kg -> 14 bits)
+
+//  ---------------------------------- (battery, precision de 1%, resolution de 1% -> 7 bits)
+  data[0] = (short) round(battery()*100);
+//  ----------------------------------- (poids en kg, precision de 0,2mv/V, resolution de 0.01kg , 120.01 kg -> 14 bits)
   data[1] = (short) round(poids()*100);
-//   ---------------------------------- (temp DS18B20 *2 en °C, précision de 0,5°C, résolution de 0.1°C, -10.1° à 85.1°C -> 10 bits + 1 bit)
+//   ---------------------------------- (temp DS18B20 *2 en °C, precision de 0,5°C, resolution de 0.1°C, -10.1° à 85.1°C -> 10 bits + 1 bit)
   tempDS18B20();
   for(int i = 0; i < nbrCapteurTempDS18B20; i++){
-    data[1+i] = (short) round(tabTempDS18B20[i]*100);
+    data[2+i] = (short) round(tabTempDS18B20[i]*100);
   }  
-//   ---------------------------------- (temp DHT22 en °C, précision de 0,5°C, résolution de 0.1°C, -10.1° à 85.1°C -> 10 bits + 1 bit)
+//   ---------------------------------- (temp DHT22 en °C, precision de 0,5°C, resolution de 0.1°C, -10.1° à 85.1°C -> 10 bits + 1 bit)
   data[4] = (short) round(tempDHT22(1)*100);
-//   ---------------------------------- (Humidite DHT22 en %, précision de 2%, résolution de 0,1% -> 10 bits)
+//   ---------------------------------- (Humidite DHT22 en %, precision de 2%, resolution de 0,1% -> 10 bits)
   data[5] = (short) round(humDHT22(1)*100);
-//   ---------------------------------- (temp DHT22 en °C, précision de 0,5°C, résolution de 0.1°C, -10.1° à 85.1°C -> 10 bits + 1 bit)
+//   ---------------------------------- (temp DHT22 en °C, precision de 0,5°C, resolution de 0.1°C, -10.1° à 85.1°C -> 10 bits + 1 bit)
   data[6] = (short) round(tempDHT22(2)*100);
-//   ---------------------------------- (Humidite DHT22 en %, précision de 2%, résolution de ...)
+//   ---------------------------------- (Humidite DHT22 en %, precision de 2%, resolution de ...)
   data[7] = (short) round(humDHT22(2)*100);
 //   ---------------------------------- (Courrant ...)
   //data.concat(courrantSEN0291());
@@ -114,15 +116,18 @@ void loop() {
    sendData();
    
    // go in low power mode
-   LowPower.deepSleep(10000); // 10s pour les tests  || 1000 * 60 * 60 * 24 = 86400000 pour 1 mesure / jour
+   //LowPower.deepSleep(10000); // 10s for the test  || 1000 * 60 * 60 * 24 = 86400000 for 1 measurement / day
    delay(100); // small delay after the deepsleep mode to give time to the ESP32 to wake up completely
-   //delay(10000); // 10s pour les tests
+   delay(10000); // 10s for the test
 }
 
-float batterie (void){
-  float TensionBat = analogRead(PinReadBat)*0.0062 - 0.0644; //Tension de la batterie
+float battery (void){
+  float TensionBat = analogRead(PinReadBat)*0.0062 - 0.0644; //Voltage of the battery
   Serial.print("BAT : ");
   Serial.println(TensionBat);
+  if(TensionBat < 0){
+    TensionBat = 0;
+  }
   return TensionBat;
 }
 
