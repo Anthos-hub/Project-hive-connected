@@ -93,22 +93,22 @@ void setup() {
 void loop() {
 
 //  ---------------------------------- (battery, precision de 1%, resolution de 1% -> 7 bits)
-  data[0] = (short) round(battery()*100);
+  data[0] = formatValue(battery());
 //  ----------------------------------- (poids en kg, precision de 0,2mv/V, resolution de 0.01kg , 120.01 kg -> 14 bits)
-  data[1] = (short) round(poids()*100);
+  data[1] = formatValue(poids());
 //   ---------------------------------- (temp DS18B20 *2 en °C, precision de 0,5°C, resolution de 0.1°C, -10.1° à 85.1°C -> 10 bits + 1 bit)
   tempDS18B20();
   for(int i = 0; i < nbrCapteurTempDS18B20; i++){
-    data[2+i] = (short) round(tabTempDS18B20[i]*100);
+    data[2+i] = formatValue(tabTempDS18B20[i]);
   }  
 //   ---------------------------------- (temp DHT22 en °C, precision de 0,5°C, resolution de 0.1°C, -10.1° à 85.1°C -> 10 bits + 1 bit)
-  data[4] = (short) round(tempDHT22(1)*100);
+  data[4] = formatValue(tempDHT22(1));
 //   ---------------------------------- (Humidite DHT22 en %, precision de 2%, resolution de 0,1% -> 10 bits)
-  data[5] = (short) round(humDHT22(1)*100);
+  data[5] = formatValue(humDHT22(1));
 //   ---------------------------------- (temp DHT22 en °C, precision de 0,5°C, resolution de 0.1°C, -10.1° à 85.1°C -> 10 bits + 1 bit)
-  data[6] = (short) round(tempDHT22(2)*100);
+  data[6] = formatValue(tempDHT22(2));
 //   ---------------------------------- (Humidite DHT22 en %, precision de 2%, resolution de ...)
-  data[7] = (short) round(humDHT22(2)*100);
+  data[7] = formatValue(humDHT22(2));
 //   ---------------------------------- (Courrant ...)
   //data.concat(courrantSEN0291());
   //data.concat(";");
@@ -116,9 +116,13 @@ void loop() {
    sendData();
    
    // go in low power mode
-   //LowPower.deepSleep(10000); // 10s for the test  || 1000 * 60 * 60 * 24 = 86400000 for 1 measurement / day
-   delay(100); // small delay after the deepsleep mode to give time to the ESP32 to wake up completely
-   delay(10000); // 10s for the test
+   LowPower.deepSleep(30000); // 30s for the test  || 1000 * 60 * 60 * 24 = 86400000 for 1 measurement / day
+   delay(1000);
+   //delay(10000); // 10s for the test
+}
+
+short formatValue(double value){
+  return (short) round(value * 100);
 }
 
 float battery (void){
@@ -212,11 +216,11 @@ int sendData(void){
   if ( connected ) {
     int err=0;
     modem.beginPacket();
-    
-    for(int i = 0 ; i<8 ; i++){
-      modem.write(data[i]);
-      Serial.println(data[i]);
+
+    for(int i = 0; i < 8; i++){
+      modem.write(data);
     }
+ 
     err = modem.endPacket(true);
     if ( err <= 0 ) {
       // Confirmation not received - jam or coverage fault
@@ -229,10 +233,7 @@ int sendData(void){
         delay(1000);
       }
     } else {
-      err_count = 0;
-      //Mode LowPower during 1 minute
-      //delay(15000);
-      
+      err_count = 0;      
     }
   }
 }
