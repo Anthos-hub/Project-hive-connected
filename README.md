@@ -13,3 +13,8 @@ OneWire
 DFRobot_INA219
 Arduino Low Power
 RTCZero
+
+
+
+reduce power with reduce clock
+https://diyi0t.com/arduino-reduce-power-consumption/#:~:text=To%20reduce%20the%20clock%20speed%20from%2016%20MHz%20to%208,to%202%20that%20equals%200x01.

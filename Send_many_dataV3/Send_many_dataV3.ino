@@ -116,9 +116,8 @@ void loop() {
    sendData();
    
    // go in low power mode
-   LowPower.deepSleep(30000); // 30s for the test  || 1000 * 60 * 60 * 24 = 86400000 for 1 measurement / day
+   LowPower.deepSleep(30000); // 30s for the test  || 1000 * 60 * 60 * 24 = 86400000 for 1 measurement / day  (3min)
    delay(1000);
-   //delay(10000); // 10s for the test
 }
 
 short formatValue(double value){
@@ -218,7 +217,7 @@ int sendData(void){
     modem.beginPacket();
 
     for(int i = 0; i < 8; i++){
-      modem.write(data);
+      modem.write(data[i]);
     }
  
     err = modem.endPacket(true);
